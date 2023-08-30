@@ -12,9 +12,12 @@
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
+    font-family: Arial, sans-serif;
   }
   canvas {
     border: 2px solid #000;
+    display: block;
+    margin: 0 auto;
   }
   #start-menu {
     display: flex;
@@ -22,7 +25,7 @@
     align-items: center;
   }
   button {
-    margin: 10px;
+    margin: 20px;
     padding: 10px 20px;
     font-size: 18px;
     background-color: #007bff;
@@ -54,6 +57,7 @@
     let brickColumnCount = 5;
     let bricks = [];
     let gameStarted = false;
+    let powerUps = [];
     
     for (let c = 0; c < brickColumnCount; c++) {
       bricks[c] = [];
@@ -112,6 +116,53 @@
             ctx.closePath();
           }
         }
+      }
+    }
+    
+    function drawPowerUps() {
+      for (let i = 0; i < powerUps.length; i++) {
+        const powerUp = powerUps[i];
+        if (powerUp.type === 0) {
+          ctx.fillStyle = "#00ff00"; // Groen voor snelheidsverhoging
+        } else if (powerUp.type === 1) {
+          ctx.fillStyle = "#ff0000"; // Rood voor vergroten paddle
+        } else {
+          ctx.fillStyle = "#0000ff"; // Blauw voor vergroten bal
+        }
+        ctx.beginPath();
+        ctx.arc(powerUp.x, powerUp.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+    
+    function checkPowerUpCollision() {
+      for (let i = 0; i < powerUps.length; i++) {
+        const powerUp = powerUps[i];
+        if (
+          ball.x > powerUp.x - 10 &&
+          ball.x < powerUp.x + 10 &&
+          ball.y > powerUp.y - 10 &&
+          ball.y < powerUp.y + 10
+        ) {
+          applyPowerUp(powerUp.type);
+          powerUps.splice(i, 1);
+          i--;
+        }
+      }
+    }
+    
+    function applyPowerUp(type) {
+      if (type === 0) {
+        // Snelheidsverhoging power-up
+        ball.dx *= 1.2;
+        ball.dy *= 1.2;
+      } else if (type === 1) {
+        // Paddle vergroting power-up
+        paddle.width += 20;
+      } else {
+        // Bal vergroting power-up
+        ball.radius += 5;
       }
     }
     
@@ -188,10 +239,12 @@
       drawBall();
       drawPaddle();
       drawBricks();
+      drawPowerUps();
       drawScore();
       drawLevel();
       
       collisionDetection();
+      checkPowerUpCollision();
       
       if(leftPressed && paddle.x > 0) {
         paddle.x -= 5;
